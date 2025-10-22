@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Кабина грузовика -->
+    <path d="M8 20H12V16H8V20Z" fill="#2196F3"/>
+    <path d="M12 16H20V12H12V16Z" fill="#2196F3"/>
+    
+    <!-- Кузов -->
+    <path d="M20 20H32V12H20V20Z" fill="#1976D2"/>
+    
+    <!-- Колёса -->
+    <circle cx="12" cy="22" r="3" fill="#333"/>
+    <circle cx="28" cy="22" r="3" fill="#333"/>
+    
+    <!-- Манипулятор -->
+    <path d="M32 12L36 8L40 12" stroke="#2196F3" stroke-width="2"/>
+    <path d="M36 8V4" stroke="#2196F3" stroke-width="2"/>
+    <path d="M32 12L28 8" stroke="#2196F3" stroke-width="2"/>
+    
+    <!-- Стрела манипулятора -->
+    <path d="M28 8L24 4" stroke="#2196F3" stroke-width="2"/>
+    <path d="M24 4L20 8" stroke="#2196F3" stroke-width="2"/>
+</svg> 
