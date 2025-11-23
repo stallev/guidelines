@@ -51,6 +51,44 @@ Guidelines for creating pure, reusable utility functions:
 - Security and validation
 - Testing utilities
 
+### 5. [Drag & Drop Guidelines](./ai_drag_drop_guidelines.md)
+**Drag & Drop для таблиц в админ-панели**
+
+Comprehensive guidelines for implementing drag & drop functionality in admin tables:
+- @dnd-kit library setup and configuration
+- Component architecture and structure
+- Sortable row implementation
+- Drag & drop event handling
+- Optimistic UI updates
+- Server Actions for order persistence
+- Error handling and rollback
+- Accessibility support (keyboard navigation)
+- Visual feedback and loading states
+
+### 6. [Responsive Table Guidelines](./ai_responsive_table_guidelines.md)
+**Универсальные принципы адаптивного отображения таблиц в админ-панели**
+
+Comprehensive guidelines for creating responsive tables in admin panels:
+- Breakpoint strategy (1280px)
+- Desktop table structure (Handle | Number | Data | Actions)
+- Mobile table structure (Handle | Info & Actions, number in header)
+- Column configuration and layout
+- Drag & drop support on all screen sizes with hydration fix
+- Description column formatting (35 characters with text wrapping)
+- Wireframes and implementation examples
+- Accessibility and performance considerations
+
+### 7. [Admin Page Components Guidelines](./ai_admin_page_components_guidelines.md)
+**Guidelines для типовых компонентов страниц админ-панели**
+
+Comprehensive guidelines for standard admin page components:
+- PageHeader component structure and usage
+- Responsive layout (768px breakpoint)
+- Mobile-first approach for page headers
+- Action button patterns
+- Implementation examples for all admin pages
+- Consistency requirements across admin interface
+
 ## 🎯 Key Principles
 
 All guidelines follow these core principles:

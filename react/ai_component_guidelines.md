@@ -27,6 +27,37 @@ Pages/Views → Layouts → Organisms → Molecules → Atoms
 - **Props Interface**: All components must have explicit TypeScript interfaces
 - **Reusability**: Components should be designed for reuse across different contexts
 - **Accessibility**: Components should follow WCAG guidelines
+- **Explicit Typing**: Use explicit parameter typing `(props: PropsType)` instead of `React.FC<PropsType>` for better type inference and flexibility
+- **Arrow Functions**: ⚠️ **MANDATORY REQUIREMENT**: All React components MUST be defined as arrow functions (`const ComponentName = (props: PropsType) => {...}`), NOT as regular functions (`function ComponentName() {...}`). This rule applies to all components: Server Components, Client Components, pages, layouts, and any other React components. Exception: Server Actions and utility functions may use regular functions.
+
+### 1.3. Why Not React.FC?
+
+We avoid using `React.FC<PropsType>` in favor of explicit parameter typing for several reasons:
+
+1. **Better Type Inference**: Explicit typing provides better type inference and IntelliSense support
+2. **Generic Support**: Works seamlessly with generic components, which `React.FC` struggles with
+3. **Flexibility**: Allows explicit return type annotations when needed (e.g., `JSX.Element | null`)
+4. **No Implicit Children**: In React 18+, `React.FC` no longer adds implicit `children`, but explicit typing is clearer
+5. **Default Props**: Works better with default parameter values and `defaultProps`
+6. **Modern Best Practice**: Aligns with current React and TypeScript community recommendations (2024-2025)
+
+**Recommended Pattern:**
+```typescript
+interface ComponentProps {
+  // props definition
+}
+
+export const Component = ({ prop1, prop2 }: ComponentProps) => {
+  // component implementation
+};
+```
+
+**Avoid:**
+```typescript
+export const Component: React.FC<ComponentProps> = ({ prop1, prop2 }) => {
+  // component implementation
+};
+```
 
 ---
 
@@ -62,7 +93,17 @@ interface ButtonProps {
   'aria-label'?: string;
 }
 
-export const Button: React.FC<ButtonProps> = ({
+/**
+ * Universal Button component
+ * @description Button with support for various variants and sizes
+ * @example
+ * ```tsx
+ * <Button variant="primary" size="lg" onClick={handleClick}>
+ *   Click me
+ * </Button>
+ * ```
+ */
+export const Button = ({
   variant = 'primary',
   size = 'md',
   disabled = false,
@@ -71,7 +112,7 @@ export const Button: React.FC<ButtonProps> = ({
   className,
   'aria-label': ariaLabel,
   ...props
-}) => {
+}: ButtonProps) => {
   const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
   
   const variantClasses = {
@@ -117,15 +158,32 @@ Choose one consistent approach:
 **Option A: CSS Modules**
 ```typescript
 import styles from './Button.module.css';
+import { cn } from '@/lib/utils';
 
-export const Button = ({ className, ...props }) => (
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  className?: string;
+}
+
+/**
+ * Button with CSS Modules
+ */
+export const Button = ({ className, ...props }: ButtonProps) => (
   <button className={cn(styles.button, className)} {...props} />
 );
 ```
 
 **Option B: Utility Classes (Tailwind CSS)**
 ```typescript
-export const Button = ({ className, ...props }) => (
+import { cn } from '@/lib/utils';
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  className?: string;
+}
+
+/**
+ * Button with Tailwind CSS
+ */
+export const Button = ({ className, ...props }: ButtonProps) => (
   <button className={cn('px-4 py-2 rounded-md', className)} {...props} />
 );
 ```
@@ -180,18 +238,27 @@ interface CardContentProps {
   className?: string;
 }
 
+/**
+ * Base Card component
+ */
 const Card = ({ children, className }: CardProps) => (
   <div className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}>
     {children}
   </div>
 );
 
+/**
+ * Card header component
+ */
 const CardHeader = ({ children, className }: CardHeaderProps) => (
   <div className={cn('flex flex-col space-y-1.5 p-6', className)}>
     {children}
   </div>
 );
 
+/**
+ * Card content component
+ */
 const CardContent = ({ children, className }: CardContentProps) => (
   <div className={cn('p-6 pt-0', className)}>
     {children}
@@ -211,7 +278,11 @@ interface DataFetcherProps<T> {
   children: (data: T | null, loading: boolean, error: Error | null) => React.ReactNode;
 }
 
-export const DataFetcher = <T,>({ url, children }: DataFetcherProps<T>) => {
+/**
+ * Component for data fetching with render props pattern
+ * @template T - Type of data being fetched
+ */
+export const DataFetcher = <T,>({ url, children }: DataFetcherProps<T>): JSX.Element => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -234,10 +305,14 @@ interface WithLoadingProps {
   isLoading: boolean;
 }
 
+/**
+ * HOC for adding loading state to a component
+ * @template P - Type of props for the wrapped component
+ */
 export const withLoading = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
-  return (props: P & WithLoadingProps) => {
+  const WithLoadingComponent = (props: P & WithLoadingProps): JSX.Element => {
     const { isLoading, ...restProps } = props;
     
     if (isLoading) {
@@ -246,6 +321,8 @@ export const withLoading = <P extends object>(
     
     return <Component {...(restProps as P)} />;
   };
+  
+  return WithLoadingComponent;
 };
 ```
 
@@ -294,10 +371,18 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 }
 
-const DefaultErrorFallback: React.FC<{ error: Error; resetError: () => void }> = ({ 
+interface DefaultErrorFallbackProps {
+  error: Error;
+  resetError: () => void;
+}
+
+/**
+ * Default component for displaying errors
+ */
+const DefaultErrorFallback = ({ 
   error, 
   resetError 
-}) => (
+}: DefaultErrorFallbackProps) => (
   <div className="p-4 border border-red-200 rounded-md bg-red-50">
     <h2 className="text-lg font-semibold text-red-800">Something went wrong</h2>
     <p className="text-red-600">{error.message}</p>
@@ -326,7 +411,10 @@ interface AccessibleButtonProps {
   role?: string;
 }
 
-export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
+/**
+ * Accessible button with full ARIA attributes support
+ */
+export const AccessibleButton = ({
   children,
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
@@ -334,7 +422,7 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
   'aria-pressed': ariaPressed,
   role,
   ...props
-}) => (
+}: AccessibleButtonProps) => (
   <button
     aria-label={ariaLabel}
     aria-describedby={ariaDescribedBy}
@@ -350,7 +438,12 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
 
 ### 6.2. Focus Management
 ```typescript
-export const useFocusTrap = (isActive: boolean) => {
+/**
+ * Hook for managing focus within a container (focus trap)
+ * @param isActive - Whether to activate the focus trap
+ * @returns Ref for the container
+ */
+export const useFocusTrap = (isActive: boolean): React.RefObject<HTMLElement> => {
   const containerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -421,9 +514,212 @@ export default Modal;
 
 ---
 
-## 9. 🚀 Performance Optimization
+## 9. ⚡ React Compiler (Next.js 16+)
 
-### 9.1. Memoization
+### 9.1. React Compiler Overview
+
+**⚠️ IMPORTANT**: If `reactCompiler: true` is enabled in `next.config.ts`, React Compiler automatically optimizes components. This means many manual optimizations become redundant.
+
+**What React Compiler does:**
+- Automatically memoizes components (equivalent to `memo`)
+- Automatically memoizes values (equivalent to `useMemo`)
+- Automatically memoizes functions (equivalent to `useCallback`)
+- Optimizes re-renders based on actual dependencies
+
+**When React Compiler is active:**
+```typescript
+// next.config.ts
+const nextConfig: NextConfig = {
+  reactCompiler: true, // ← React Compiler enabled
+  // ...
+};
+```
+
+### 9.2. Code Writing Rules for React Compiler
+
+#### ✅ Recommended Patterns:
+
+1. **Pure components** - components should be pure functions:
+```typescript
+// ✅ GOOD: Pure function
+export const Button = ({ onClick, children }: ButtonProps) => {
+  return (
+    <button onClick={onClick}>
+      {children}
+    </button>
+  );
+};
+
+// ❌ BAD: Props mutation
+export const Button = ({ onClick, children }: ButtonProps) => {
+  onClick.mutated = true; // Mutation!
+  return <button onClick={onClick}>{children}</button>;
+};
+```
+
+2. **Stable dependencies** - use stable references:
+```typescript
+// ✅ GOOD: Stable reference
+const handleClick = () => {
+  console.log('clicked');
+};
+
+// ✅ GOOD: useCallback not needed with React Compiler
+export const Button = ({ onClick }: ButtonProps) => {
+  const handleClick = () => {
+    onClick?.();
+  };
+  return <button onClick={handleClick}>Click</button>;
+};
+```
+
+3. **Proper useEffect usage**:
+```typescript
+// ✅ GOOD: Explicit dependencies
+export const Component = ({ userId }: ComponentProps) => {
+  useEffect(() => {
+    fetchUser(userId);
+  }, [userId]); // Explicit dependencies
+  
+  return <div>...</div>;
+};
+```
+
+#### ❌ Patterns to Avoid:
+
+1. **Redundant memoizations** - React Compiler does this automatically:
+```typescript
+// ❌ REDUNDANT with React Compiler:
+export const Component = memo(({ data }: ComponentProps) => {
+  const processed = useMemo(() => processData(data), [data]);
+  const handleClick = useCallback(() => {
+    // ...
+  }, []);
+  
+  return <div>...</div>;
+});
+
+// ✅ CORRECT with React Compiler:
+export const Component = ({ data }: ComponentProps) => {
+  const processed = processData(data); // Compiler optimizes automatically
+  const handleClick = () => {
+    // ...
+  };
+  
+  return <div>...</div>;
+};
+```
+
+2. **Object and array mutations**:
+```typescript
+// ❌ BAD: Mutation
+const updateData = (data: Data[]) => {
+  data.push(newItem); // Mutation!
+};
+
+// ✅ GOOD: Immutable update
+const updateData = (data: Data[]) => {
+  return [...data, newItem]; // New array
+};
+```
+
+3. **Unstable references in dependencies**:
+```typescript
+// ❌ BAD: Unstable reference
+useEffect(() => {
+  // ...
+}, [{ id: 1 }]); // New object on every render!
+
+// ✅ GOOD: Primitive values or stable references
+useEffect(() => {
+  // ...
+}, [userId]); // Primitive value
+```
+
+### 9.3. When Manual Optimizations Are Still Needed
+
+React Compiler doesn't replace all optimizations. Manual optimizations are still needed for:
+
+1. **Heavy computations** - if computation is very expensive, you can keep `useMemo`:
+```typescript
+// If computation is VERY heavy (e.g., processing large arrays)
+const expensiveResult = useMemo(() => {
+  return heavyComputation(data);
+}, [data]);
+```
+
+2. **Third-party libraries** - if library requires stable references:
+```typescript
+// If library requires stable reference
+const stableCallback = useCallback(() => {
+  libraryFunction();
+}, []);
+```
+
+3. **Refs for DOM elements** - `useRef` is still needed:
+```typescript
+const inputRef = useRef<HTMLInputElement>(null);
+```
+
+### 9.4. Migrating Existing Code
+
+When enabling React Compiler:
+
+1. **Remove redundant `memo`**:
+```typescript
+// Before:
+export const Component = memo(({ data }: ComponentProps) => { ... });
+
+// After:
+export const Component = ({ data }: ComponentProps) => { ... };
+```
+
+2. **Remove redundant `useMemo`** (except for very heavy computations):
+```typescript
+// Before:
+const value = useMemo(() => computeValue(data), [data]);
+
+// After:
+const value = computeValue(data);
+```
+
+3. **Remove redundant `useCallback`** (except for external libraries):
+```typescript
+// Before:
+const handleClick = useCallback(() => {
+  onClick();
+}, [onClick]);
+
+// After:
+const handleClick = () => {
+  onClick();
+};
+```
+
+### 9.5. Verifying React Compiler Work
+
+React Compiler works automatically, but you can verify its work:
+
+1. **Check in DevTools** - React DevTools will show optimized components
+2. **Profiling** - use React Profiler to check re-renders
+3. **Logging** - add `console.log` to track re-renders
+
+### 9.6. Exceptions and Special Cases
+
+React Compiler may not optimize:
+- Components with `forwardRef` (require special attention)
+- Components with `memo` and custom comparisons
+- Complex conditional renders with side effects
+
+In such cases, you can keep manual optimizations.
+
+---
+
+## 10. 🚀 Performance Optimization (Legacy - without React Compiler)
+
+> ⚠️ **Note**: If `reactCompiler: true` is enabled in `next.config.ts`, most optimizations in this section are redundant. See section 9 "React Compiler".
+
+### 10.1. Memoization
 ```typescript
 import React, { memo, useMemo, useCallback } from 'react';
 
@@ -432,10 +728,13 @@ interface ExpensiveComponentProps {
   onItemClick: (id: string) => void;
 }
 
-export const ExpensiveComponent = memo<ExpensiveComponentProps>(({ 
+/**
+ * Optimized component with memoization
+ */
+export const ExpensiveComponent = memo(({ 
   data, 
   onItemClick 
-}) => {
+}: ExpensiveComponentProps) => {
   const processedData = useMemo(() => {
     return data.map(item => ({
       ...item,
@@ -465,7 +764,10 @@ import { lazy, Suspense } from 'react';
 
 const LazyComponent = lazy(() => import('./HeavyComponent'));
 
-export const App = () => (
+/**
+ * Example of Lazy Loading usage
+ */
+export const App = (): JSX.Element => (
   <Suspense fallback={<div>Loading...</div>}>
     <LazyComponent />
   </Suspense>
@@ -474,26 +776,33 @@ export const App = () => (
 
 ---
 
-## 10. 🤖 AI Assistant Instructions
+## 11. 🤖 AI Assistant Instructions
 
 When generating React components:
 
-1. **Identify Component Level**: Determine if it's an Atom, Molecule, Organism, Layout, or Page
-2. **Create TypeScript Interface**: Define explicit props interface with proper typing
-3. **Follow Naming Conventions**: Use PascalCase for components, descriptive prop names
-4. **Include Accessibility**: Add appropriate ARIA attributes and keyboard navigation
-5. **Handle Edge Cases**: Consider loading states, error states, and empty states
-6. **Optimize Performance**: Use memo, useMemo, useCallback when appropriate
-7. **Write Tests**: Include unit tests and accessibility tests
-8. **Document Props**: Add JSDoc comments for complex props
+1. **Check React Compiler**: If `reactCompiler: true` is enabled in `next.config.ts`, avoid manual memoization (`memo`, `useMemo`, `useCallback`) unless specifically needed
+2. **Identify Component Level**: Determine if it's an Atom, Molecule, Organism, Layout, or Page
+3. **Create TypeScript Interface**: Define explicit props interface with proper typing
+4. **Use Explicit Typing**: Use `(props: PropsType)` instead of `React.FC<PropsType>` for better type inference, generic support, and flexibility
+5. **Follow Naming Conventions**: Use PascalCase for components, descriptive prop names
+6. **Write Pure Components**: Components should be pure functions without mutations
+7. **Include Accessibility**: Add appropriate ARIA attributes and keyboard navigation
+8. **Handle Edge Cases**: Consider loading states, error states, and empty states
+9. **Optimize Performance**: 
+   - With React Compiler: Write clean code, compiler handles optimization
+   - Without React Compiler: Use memo, useMemo, useCallback when appropriate
+10. **Write Tests**: Include unit tests and accessibility tests
+11. **Document Props**: Add JSDoc comments for all components and complex props (in English)
 
 > **Example Prompt**: "Generate a reusable Modal component that follows accessibility guidelines, includes proper TypeScript typing, and can be used across different React frameworks."
 
 ---
 
-## 11. 📚 References
+## 12. 📚 References
 
 - [React Documentation](https://react.dev/)
+- [React Compiler](https://react.dev/learn/react-compiler) - Automatic optimization of React components
+- [Next.js React Compiler](https://nextjs.org/docs/app/api-reference/next-config-js/reactCompiler) - React Compiler configuration in Next.js
 - [WCAG Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
 - [Testing Library](https://testing-library.com/)
 - [Jest Axe](https://github.com/nickcolley/jest-axe)
