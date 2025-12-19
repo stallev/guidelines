@@ -1,240 +1,818 @@
-### Unified React Components & Hooks Guidelines
+# Universal React Components Guidelines
 
-This document synthesizes the best practices from three source guidelines (GR1, GE2, QN3) and aligns them with the **“Behold Your God”** project’s architecture (Next.js App Router v15.5+, TypeScript, AWS Amplify/AppSync). It is designed to be the single source of truth for developers and AI assistants like CursorAI.
+This document provides comprehensive guidelines for creating React components that are framework-agnostic and can be used across different React-based frameworks (Next.js, Astro, Remix, etc.). These guidelines focus on universal React patterns and best practices.
 
 ---
 
 ## 1. 🏗️ Architectural Foundations
 
-### 1.1. Dual Methodology
-The project is built on two complementary approaches:
-*   **Feature-Sliced Design (FSD) 2.1**: Governs the **project’s structural layers** and dependency rules. The core principle is **“pages first”**, meaning code unique to a single page should remain within it [[15], [16]].
-*   **Atomic Design**: Governs the **UI component hierarchy** within the `shared/ui` layer, organizing components from simple to complex: Atoms → Molecules → Organisms [[9], [17]].
-
-> **Synergy**: FSD manages **business logic and project structure**, while Atomic Design manages **UI structure and reusability**.
-
-### 1.2. FSD Layers and Dependency Rules
-Code is organized into five strict layers. Dependencies are allowed **only downward** in the hierarchy:
+### 1.1. Component Hierarchy Principles
+Components should follow a clear hierarchy based on complexity and reusability:
 
 ```
-pages → widgets → features → entities → shared
+Pages/Views → Layouts → Organisms → Molecules → Atoms
 ```
 
-| Layer | Purpose | Contents | Rules |
-| :--- | :--- | :--- | :--- |
-| **`shared`** | Global, framework-agnostic code | `ui/` (Atoms, Molecules), `lib/` (utilities), `config/` | ❌ Never import from higher layers. |
-| **`entities`** | Domain models (User, Post, Category) | `model/` (types, API clients, Server Actions), `ui/` (rare) | ✅ Can import from `shared`. ❌ No imports from `features` or above. |
-| **`features`** | User actions (Login, Publish Post) | `ui/` (action components), `model/` (hooks, validation) | ✅ Can import from `entities` and `shared`. ❌ No cross-`features` imports. |
-| **`widgets`** | Complex UI blocks (Header, PostCard) | `ui/` (composer components) | ✅ Can import from `features`, `entities`, `shared`. ❌ No business logic. |
-| **`pages`** | Next.js routes (App Router) | `page.tsx`, `loading.tsx`, `error.tsx` | ✅ Can import from all layers. ❌ Composition only, no logic. |
+| Level | Purpose | Characteristics | Examples |
+|-------|---------|-----------------|----------|
+| **Atoms** | Basic UI elements | Single responsibility, highly reusable | `Button`, `Input`, `Icon` |
+| **Molecules** | Simple component groups | 2-3 atoms working together | `SearchField`, `UserAvatar` |
+| **Organisms** | Complex UI sections | Multiple molecules/atoms | `Header`, `ProductCard`, `Form` |
+| **Layouts** | Page structure | Containers and grid systems | `MainLayout`, `AuthLayout` |
+| **Pages/Views** | Complete pages | Composition of organisms | `HomePage`, `UserProfile` |
+
+### 1.2. Component Design Principles
+- **Single Responsibility**: Each component should have one clear purpose
+- **Composition over Inheritance**: Build complex components by combining simpler ones
+- **Props Interface**: All components must have explicit TypeScript interfaces
+- **Reusability**: Components should be designed for reuse across different contexts
+- **Accessibility**: Components should follow WCAG guidelines
+- **Explicit Typing**: Use explicit parameter typing `(props: PropsType)` instead of `React.FC<PropsType>` for better type inference and flexibility
+- **Arrow Functions**: ⚠️ **MANDATORY REQUIREMENT**: All React components MUST be defined as arrow functions (`const ComponentName = (props: PropsType) => {...}`), NOT as regular functions (`function ComponentName() {...}`). This rule applies to all components: Server Components, Client Components, pages, layouts, and any other React components. Exception: Server Actions and utility functions may use regular functions.
+
+### 1.3. Bundle Optimization Requirements
+- **Следуйте документу [`ai_bundle_optimize_nextjs_guideline.md`](./ai_bundle_optimize_nextjs_guideline.md).** Любой компонент должен проверяться на влияние на client bundle.
+- **Сервер по умолчанию**: реализуйте компонент как Server Component и выносите в клиентский модуль только строго необходимую интерактивную часть.
+- **Динамические импорты**: тяжёлые библиотеки/виджеты подключаем через `next/dynamic` непосредственно в местах использования.
+- **Серверная подготовка данных**: форматирование строк, объединение текстов, вычисления выполнять до попадания данных на клиент.
+- **Обязательная проверка**: перед ревью запускать `npm run build` и фиксировать рост bundle, если он происходит.
+
+### 1.4. Why Not React.FC?
+
+We avoid using `React.FC<PropsType>` in favor of explicit parameter typing for several reasons:
+
+1. **Better Type Inference**: Explicit typing provides better type inference and IntelliSense support
+2. **Generic Support**: Works seamlessly with generic components, which `React.FC` struggles with
+3. **Flexibility**: Allows explicit return type annotations when needed (e.g., `JSX.Element | null`)
+4. **No Implicit Children**: In React 18+, `React.FC` no longer adds implicit `children`, but explicit typing is clearer
+5. **Default Props**: Works better with default parameter values and `defaultProps`
+6. **Modern Best Practice**: Aligns with current React and TypeScript community recommendations (2024-2025)
+
+**Recommended Pattern:**
+```typescript
+interface ComponentProps {
+  // props definition
+}
+
+export const Component = ({ prop1, prop2 }: ComponentProps) => {
+  // component implementation
+};
+```
+
+**Avoid:**
+```typescript
+export const Component: React.FC<ComponentProps> = ({ prop1, prop2 }) => {
+  // component implementation
+};
+```
 
 ---
 
-## 2. 🧩 UI Components and Atomic Design
+## 2. 🧩 Component Structure and Patterns
 
-### 2.1. Applying Atomic Design
-The Atomic Design hierarchy is applied **strictly within `shared/ui`**:
+### 2.1. Component File Structure
+```
+components/
+├── atoms/
+│   ├── Button/
+│   │   ├── Button.tsx
+│   │   ├── Button.test.tsx
+│   │   ├── Button.stories.tsx
+│   │   └── index.ts
+│   └── Input/
+├── molecules/
+├── organisms/
+└── layouts/
+```
 
-| Level | Location | Purpose | Examples |
-| :--- | :--- | :--- | :--- |
-| **Atoms** | `shared/ui/atoms/` | Smallest, indivisible UI elements. Zero logic. | `Button`, `Input`, `Icon` (based on shadcn/ui) |
-| **Molecules** | `shared/ui/molecules/` | Groups of Atoms serving a single function. Minimal state allowed. | `SearchField`, `UserAvatar` |
-| **Organisms** | **`widgets/`** | Complex UI sections. **Not placed in `shared/ui`** . | `Navbar`, `Footer`, `PostCard` |
-
-> **Rule**: If a component is used in two or more independent features, promote it to `shared/ui/molecules`.
-
-### 2.2. Component Design Principles
-*   **Type Safety**: All components are strictly typed using `interface` for props.
-*   **Declarative**: Components receive data and callbacks via props. **No direct data fetching or business logic** inside UI .
-*   **Server Components by Default**: All components are **Server Components** unless interactivity (`useState`, `useEffect`, event handlers) is required [[3], [6]].
-*   **Page Components**: Page components (`src/app/*/page.tsx`) MUST be Server Components only. Interactive functionality should be delegated to Client Components in lower layers.
-*   **Arrow Functions**: All components, hooks, and utilities MUST use arrow function syntax for consistency and modern JavaScript practices.
-*   **Styling**: Use **Tailwind CSS exclusively**. For conditional classes, use the `cn()` utility from `shared/lib`.
-
-### 2.3. Atomic Design Enforcement
-*   **Single Responsibility**: Each component MUST have only one responsibility. If a component handles multiple concerns, it MUST be refactored into smaller components.
-*   **Atomic Hierarchy**: Components MUST follow the Atomic Design hierarchy:
-  - **Atoms** (`shared/ui/atoms/`): Smallest, indivisible UI elements (Button, Input, Filter)
-  - **Molecules** (`shared/ui/molecules/`): Compositions of 2-3 atoms serving one function (SearchField, FilterControls)
-  - **Organisms** (`widgets/`): Complex UI sections composed of molecules and atoms
-*   **Composition over Monoliths**: Prefer creating multiple small, focused components over large, monolithic ones.
-*   **Reusability First**: If a UI pattern appears in 2+ places, it MUST be extracted into a reusable component.
-
-### 2.4. Component Size and Complexity Rules
-*   **Maximum Lines**: Components MUST NOT exceed 100 lines of code. If exceeded, refactor into smaller components.
-*   **Maximum Props**: Components MUST NOT have more than 8 props. If exceeded, consider using a context or breaking into smaller components.
-*   **Single JSX Return**: Components MUST return a single JSX element. Multiple sections MUST be extracted into separate components.
-*   **No Nested Logic**: Complex conditional rendering MUST be extracted into separate components or custom hooks.
-*   **Clear Naming**: Component names MUST clearly indicate their single responsibility (e.g., `FormatFilter`, `ResultsGrid`, not `LibraryFilters`).
-
-### 2.5. Component Quality Checklist
-Before creating or reviewing components, verify:
-
-**✅ Atomic Design Compliance**:
-- [ ] Component follows the correct hierarchy (Atom → Molecule → Organism)
-- [ ] Component has a single, clear responsibility
-- [ ] Component name reflects its single responsibility
-- [ ] Component is reusable in different contexts
-
-**✅ Size and Complexity**:
-- [ ] Component is under 100 lines of code
-- [ ] Component has 8 or fewer props
-- [ ] Component returns a single JSX element
-- [ ] No complex nested conditional rendering
-
-**✅ Architecture Compliance**:
-- [ ] Component is in the correct FSD layer
-- [ ] Component uses proper TypeScript typing
-- [ ] Component follows Server/Client Component rules
-- [ ] Component uses arrow function syntax
-
-**✅ Reusability**:
-- [ ] Component can be used independently
-- [ ] Component accepts all necessary props
-- [ ] Component has clear, documented interface
-- [ ] Component is testable in isolation
-
-**❌ Red Flags (Immediate Refactoring Required)**:
-- [ ] Component handles multiple unrelated concerns
-- [ ] Component is hard to understand at first glance
-- [ ] Component is difficult to test
-- [ ] Component has complex nested JSX
-- [ ] Component name doesn't clearly indicate its purpose
-
-### 2.6. Page Component Requirements
-
-**CRITICAL**: Page components (`src/app/*/page.tsx`) MUST be kept minimal and only handle orchestration.
-
-**Page Component Rules**:
-1. **Extract Page Sections**: All distinct sections MUST be extracted into separate components in `features/{feature}/ui/`
-   - Sections are typically marked with comments like `{/* Breadcrumbs */}`, `{/* Post Header */}`, etc.
-   - Each section becomes its own component (e.g., `PostBreadcrumbs`, `PostHeader`, `ArticleContent`)
-   
-2. **Extract Logic to Hooks**: All logic MUST be moved to custom hooks in `shared/lib/hooks/`
-   - Date formatting → `useFormatDate`
-   - Content rendering → `useBlockNoteRenderer`
-   - Data transformation → appropriate hooks in `entities/{name}/model/`
-
-3. **No Inline Functions**: Page components MUST NOT contain inline function declarations
-   - ❌ Bad: `const formatDate = (date) => { ... }` inside page component
-   - ✅ Good: `const { formatDate } = useFormatDate()`
-
-4. **No Business Logic**: Pages MUST only:
-   - Fetch/prepare data
-   - Import and compose components
-   - Pass data as props
-
-5. **Type Safety**: NEVER use `any` types
-   - All data MUST be properly typed
-   - Use proper TypeScript inference or explicit types
-
-6. **Import Aliases**: ALWAYS use path aliases, NEVER relative paths
-   - ❌ Bad: `import { mockPosts } from '../../../../mocks/data/posts'`
-   - ✅ Good: `import { mockPosts } from '@/mocks/data/posts'`
-
-**Example of Proper Page Structure**:
+### 2.2. Component Template
 ```typescript
-// ❌ BAD: Monolithic page with inline logic
-const PostPage = ({ params }) => {
-  const post = mockPosts.find(p => p.slug === params.slug);
+import React from 'react';
+import { cn } from '@/lib/utils';
+
+interface ButtonProps {
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  disabled?: boolean;
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+  'aria-label'?: string;
+}
+
+/**
+ * Universal Button component
+ * @description Button with support for various variants and sizes
+ * @example
+ * ```tsx
+ * <Button variant="primary" size="lg" onClick={handleClick}>
+ *   Click me
+ * </Button>
+ * ```
+ */
+export const Button = ({
+  variant = 'primary',
+  size = 'md',
+  disabled = false,
+  children,
+  onClick,
+  className,
+  'aria-label': ariaLabel,
+  ...props
+}: ButtonProps) => {
+  const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
   
-  const formatDate = (dateString) => {
-    // inline logic
+  const variantClasses = {
+    primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
+    secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+    ghost: 'hover:bg-accent hover:text-accent-foreground',
   };
   
-  const renderContent = (content) => {
-    // complex rendering logic
+  const sizeClasses = {
+    sm: 'h-9 px-3 text-sm',
+    md: 'h-10 px-4 py-2',
+    lg: 'h-11 px-8 text-lg',
+  };
+
+  return (
+    <button
+      className={cn(
+        baseClasses,
+        variantClasses[variant],
+        sizeClasses[size],
+        className
+      )}
+      disabled={disabled}
+      onClick={onClick}
+      aria-label={ariaLabel}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+export default Button;
+```
+
+---
+
+## 3. 🎨 Styling and Theming
+
+### 3.1. CSS-in-JS or Utility-First Approach
+Choose one consistent approach:
+
+**Option A: CSS Modules**
+```typescript
+import styles from './Button.module.css';
+import { cn } from '@/lib/utils';
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  className?: string;
+}
+
+/**
+ * Button with CSS Modules
+ */
+export const Button = ({ className, ...props }: ButtonProps) => (
+  <button className={cn(styles.button, className)} {...props} />
+);
+```
+
+**Option B: Utility Classes (Tailwind CSS)**
+```typescript
+import { cn } from '@/lib/utils';
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  className?: string;
+}
+
+/**
+ * Button with Tailwind CSS
+ */
+export const Button = ({ className, ...props }: ButtonProps) => (
+  <button className={cn('px-4 py-2 rounded-md', className)} {...props} />
+);
+```
+
+**Option C: Styled Components**
+```typescript
+import styled from 'styled-components';
+
+const StyledButton = styled.button`
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  /* ... */
+`;
+```
+
+### 3.2. Theme Support
+```typescript
+interface ThemeContextType {
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};
+```
+
+---
+
+## 4. 🔧 Component Patterns
+
+### 4.1. Compound Components
+```typescript
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardHeaderProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardContentProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+/**
+ * Base Card component
+ */
+const Card = ({ children, className }: CardProps) => (
+  <div className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}>
+    {children}
+  </div>
+);
+
+/**
+ * Card header component
+ */
+const CardHeader = ({ children, className }: CardHeaderProps) => (
+  <div className={cn('flex flex-col space-y-1.5 p-6', className)}>
+    {children}
+  </div>
+);
+
+/**
+ * Card content component
+ */
+const CardContent = ({ children, className }: CardContentProps) => (
+  <div className={cn('p-6 pt-0', className)}>
+    {children}
+  </div>
+);
+
+Card.Header = CardHeader;
+Card.Content = CardContent;
+
+export { Card };
+```
+
+### 4.2. Render Props Pattern
+```typescript
+interface DataFetcherProps<T> {
+  url: string;
+  children: (data: T | null, loading: boolean, error: Error | null) => React.ReactNode;
+}
+
+/**
+ * Component for data fetching with render props pattern
+ * @template T - Type of data being fetched
+ */
+export const DataFetcher = <T,>({ url, children }: DataFetcherProps<T>): JSX.Element => {
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    fetch(url)
+      .then(res => res.json())
+      .then(setData)
+      .catch(setError)
+      .finally(() => setLoading(false));
+  }, [url]);
+
+  return <>{children(data, loading, error)}</>;
+};
+```
+
+### 4.3. Higher-Order Components (HOCs)
+```typescript
+interface WithLoadingProps {
+  isLoading: boolean;
+}
+
+/**
+ * HOC for adding loading state to a component
+ * @template P - Type of props for the wrapped component
+ */
+export const withLoading = <P extends object>(
+  Component: React.ComponentType<P>
+) => {
+  const WithLoadingComponent = (props: P & WithLoadingProps): JSX.Element => {
+    const { isLoading, ...restProps } = props;
+    
+    if (isLoading) {
+      return <div>Loading...</div>;
+    }
+    
+    return <Component {...(restProps as P)} />;
   };
   
+  return WithLoadingComponent;
+};
+```
+
+---
+
+## 5. 🛡️ Error Handling and Boundaries
+
+### 5.1. Error Boundary Component
+```typescript
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ComponentType<{ error: Error; resetError: () => void }>;
+}
+
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      const FallbackComponent = this.props.fallback || DefaultErrorFallback;
+      return (
+        <FallbackComponent 
+          error={this.state.error!} 
+          resetError={() => this.setState({ hasError: false, error: undefined })}
+        />
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+interface DefaultErrorFallbackProps {
+  error: Error;
+  resetError: () => void;
+}
+
+/**
+ * Default component for displaying errors
+ */
+const DefaultErrorFallback = ({ 
+  error, 
+  resetError 
+}: DefaultErrorFallbackProps) => (
+  <div className="p-4 border border-red-200 rounded-md bg-red-50">
+    <h2 className="text-lg font-semibold text-red-800">Something went wrong</h2>
+    <p className="text-red-600">{error.message}</p>
+    <button 
+      onClick={resetError}
+      className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+    >
+      Try again
+    </button>
+  </div>
+);
+```
+
+---
+
+## 6. ♿ Accessibility Guidelines
+
+### 6.1. ARIA Attributes
+```typescript
+interface AccessibleButtonProps {
+  children: React.ReactNode;
+  'aria-label'?: string;
+  'aria-describedby'?: string;
+  'aria-expanded'?: boolean;
+  'aria-pressed'?: boolean;
+  role?: string;
+}
+
+/**
+ * Accessible button with full ARIA attributes support
+ */
+export const AccessibleButton = ({
+  children,
+  'aria-label': ariaLabel,
+  'aria-describedby': ariaDescribedBy,
+  'aria-expanded': ariaExpanded,
+  'aria-pressed': ariaPressed,
+  role,
+  ...props
+}: AccessibleButtonProps) => (
+  <button
+    aria-label={ariaLabel}
+    aria-describedby={ariaDescribedBy}
+    aria-expanded={ariaExpanded}
+    aria-pressed={ariaPressed}
+    role={role}
+    {...props}
+  >
+    {children}
+  </button>
+);
+```
+
+### 6.2. Focus Management
+```typescript
+/**
+ * Hook for managing focus within a container (focus trap)
+ * @param isActive - Whether to activate the focus trap
+ * @returns Ref for the container
+ */
+export const useFocusTrap = (isActive: boolean): React.RefObject<HTMLElement> => {
+  const containerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!isActive || !containerRef.current) return;
+
+    const focusableElements = containerRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    
+    const firstElement = focusableElements[0] as HTMLElement;
+    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
+    firstElement?.focus();
+    document.addEventListener('keydown', handleTabKey);
+
+    return () => {
+      document.removeEventListener('keydown', handleTabKey);
+    };
+  }, [isActive]);
+
+  return containerRef;
+};
+```
+
+---
+
+## 8. 📦 Component Export Patterns
+
+### 8.1. Barrel Exports
+```typescript
+// components/atoms/index.ts
+export { Button } from './Button';
+export { Input } from './Input';
+export { Icon } from './Icon';
+
+// components/index.ts
+export * from './atoms';
+export * from './molecules';
+export * from './organisms';
+export * from './layouts';
+```
+
+### 8.2. Named vs Default Exports
+```typescript
+// Prefer named exports for better tree-shaking
+export const Button = () => { /* ... */ };
+
+// Use default export only for main component of a file
+const Modal = () => { /* ... */ };
+export default Modal;
+```
+
+---
+
+## 9. ⚡ React Compiler (Next.js 16+)
+
+### 9.1. React Compiler Overview
+
+**⚠️ IMPORTANT**: If `reactCompiler: true` is enabled in `next.config.ts`, React Compiler automatically optimizes components. This means many manual optimizations become redundant.
+
+**What React Compiler does:**
+- Automatically memoizes components (equivalent to `memo`)
+- Automatically memoizes values (equivalent to `useMemo`)
+- Automatically memoizes functions (equivalent to `useCallback`)
+- Optimizes re-renders based on actual dependencies
+
+**When React Compiler is active:**
+```typescript
+// next.config.ts
+const nextConfig: NextConfig = {
+  reactCompiler: true, // ← React Compiler enabled
+  // ...
+};
+```
+
+### 9.2. Code Writing Rules for React Compiler
+
+#### ✅ Recommended Patterns:
+
+1. **Pure components** - components should be pure functions:
+```typescript
+// ✅ GOOD: Pure function
+export const Button = ({ onClick, children }: ButtonProps) => {
+  return (
+    <button onClick={onClick}>
+      {children}
+    </button>
+  );
+};
+
+// ❌ BAD: Props mutation
+export const Button = ({ onClick, children }: ButtonProps) => {
+  onClick.mutated = true; // Mutation!
+  return <button onClick={onClick}>{children}</button>;
+};
+```
+
+2. **Stable dependencies** - use stable references:
+```typescript
+// ✅ GOOD: Stable reference
+const handleClick = () => {
+  console.log('clicked');
+};
+
+// ✅ GOOD: useCallback not needed with React Compiler
+export const Button = ({ onClick }: ButtonProps) => {
+  const handleClick = () => {
+    onClick?.();
+  };
+  return <button onClick={handleClick}>Click</button>;
+};
+```
+
+3. **Proper useEffect usage**:
+```typescript
+// ✅ GOOD: Explicit dependencies
+export const Component = ({ userId }: ComponentProps) => {
+  useEffect(() => {
+    fetchUser(userId);
+  }, [userId]); // Explicit dependencies
+  
+  return <div>...</div>;
+};
+```
+
+#### ❌ Patterns to Avoid:
+
+1. **Redundant memoizations** - React Compiler does this automatically:
+```typescript
+// ❌ REDUNDANT with React Compiler:
+export const Component = memo(({ data }: ComponentProps) => {
+  const processed = useMemo(() => processData(data), [data]);
+  const handleClick = useCallback(() => {
+    // ...
+  }, []);
+  
+  return <div>...</div>;
+});
+
+// ✅ CORRECT with React Compiler:
+export const Component = ({ data }: ComponentProps) => {
+  const processed = processData(data); // Compiler optimizes automatically
+  const handleClick = () => {
+    // ...
+  };
+  
+  return <div>...</div>;
+};
+```
+
+2. **Object and array mutations**:
+```typescript
+// ❌ BAD: Mutation
+const updateData = (data: Data[]) => {
+  data.push(newItem); // Mutation!
+};
+
+// ✅ GOOD: Immutable update
+const updateData = (data: Data[]) => {
+  return [...data, newItem]; // New array
+};
+```
+
+3. **Unstable references in dependencies**:
+```typescript
+// ❌ BAD: Unstable reference
+useEffect(() => {
+  // ...
+}, [{ id: 1 }]); // New object on every render!
+
+// ✅ GOOD: Primitive values or stable references
+useEffect(() => {
+  // ...
+}, [userId]); // Primitive value
+```
+
+### 9.3. When Manual Optimizations Are Still Needed
+
+React Compiler doesn't replace all optimizations. Manual optimizations are still needed for:
+
+1. **Heavy computations** - if computation is very expensive, you can keep `useMemo`:
+```typescript
+// If computation is VERY heavy (e.g., processing large arrays)
+const expensiveResult = useMemo(() => {
+  return heavyComputation(data);
+}, [data]);
+```
+
+2. **Third-party libraries** - if library requires stable references:
+```typescript
+// If library requires stable reference
+const stableCallback = useCallback(() => {
+  libraryFunction();
+}, []);
+```
+
+3. **Refs for DOM elements** - `useRef` is still needed:
+```typescript
+const inputRef = useRef<HTMLInputElement>(null);
+```
+
+### 9.4. Migrating Existing Code
+
+When enabling React Compiler:
+
+1. **Remove redundant `memo`**:
+```typescript
+// Before:
+export const Component = memo(({ data }: ComponentProps) => { ... });
+
+// After:
+export const Component = ({ data }: ComponentProps) => { ... };
+```
+
+2. **Remove redundant `useMemo`** (except for very heavy computations):
+```typescript
+// Before:
+const value = useMemo(() => computeValue(data), [data]);
+
+// After:
+const value = computeValue(data);
+```
+
+3. **Remove redundant `useCallback`** (except for external libraries):
+```typescript
+// Before:
+const handleClick = useCallback(() => {
+  onClick();
+}, [onClick]);
+
+// After:
+const handleClick = () => {
+  onClick();
+};
+```
+
+### 9.5. Verifying React Compiler Work
+
+React Compiler works automatically, but you can verify its work:
+
+1. **Check in DevTools** - React DevTools will show optimized components
+2. **Profiling** - use React Profiler to check re-renders
+3. **Logging** - add `console.log` to track re-renders
+
+### 9.6. Exceptions and Special Cases
+
+React Compiler may not optimize:
+- Components with `forwardRef` (require special attention)
+- Components with `memo` and custom comparisons
+- Complex conditional renders with side effects
+
+In such cases, you can keep manual optimizations.
+
+---
+
+## 10. 🚀 Performance Optimization (Legacy - without React Compiler)
+
+> ⚠️ **Note**: If `reactCompiler: true` is enabled in `next.config.ts`, most optimizations in this section are redundant. See section 9 "React Compiler".
+
+### 10.1. Memoization
+```typescript
+import React, { memo, useMemo, useCallback } from 'react';
+
+interface ExpensiveComponentProps {
+  data: ComplexData[];
+  onItemClick: (id: string) => void;
+}
+
+/**
+ * Optimized component with memoization
+ */
+export const ExpensiveComponent = memo(({ 
+  data, 
+  onItemClick 
+}: ExpensiveComponentProps) => {
+  const processedData = useMemo(() => {
+    return data.map(item => ({
+      ...item,
+      processed: heavyComputation(item)
+    }));
+  }, [data]);
+
+  const handleItemClick = useCallback((id: string) => {
+    onItemClick(id);
+  }, [onItemClick]);
+
   return (
     <div>
-      {/* 200+ lines of mixed JSX */}
+      {processedData.map(item => (
+        <div key={item.id} onClick={() => handleItemClick(item.id)}>
+          {item.name}
+        </div>
+      ))}
     </div>
   );
-};
+});
+```
 
-// ✅ GOOD: Clean page with extracted components and hooks
-import {
-  PostBreadcrumbs,
-  PostHeader,
-  PostCoverImage,
-  ArticleContent,
-  MediaPlayer,
-  RelatedMaterials,
-} from '@/features/posts/ui';
+### 9.2. Lazy Loading
+```typescript
+import { lazy, Suspense } from 'react';
 
-const PostPage = ({ params }: PostPageProps) => {
-  const post = mockPosts.find((p) => p.slug === params.slug);
-  
-  if (!post) notFound();
-  
-  const category = mockCategories.find((c) => c.id === post.categoryId);
-  const author = mockUsers.find((u) => u.id === post.authorId);
-  const relatedPosts = getRelatedPosts(post);
-  
-  return (
-    <div className="min-h-screen">
-      <PostBreadcrumbs category={category} postTitle={post.title} />
-      <PostHeader {...headerProps} />
-      {post.coverImageS3Url && <PostCoverImage src={post.coverImageS3Url} alt={post.title} />}
-      {isMediaPost ? <MediaPlayer {...mediaProps} /> : <ArticleContent content={post.content} />}
-      <RelatedMaterials posts={relatedPosts} />
-    </div>
-  );
-};
+const LazyComponent = lazy(() => import('./HeavyComponent'));
+
+/**
+ * Example of Lazy Loading usage
+ */
+export const App = (): JSX.Element => (
+  <Suspense fallback={<div>Loading...</div>}>
+    <LazyComponent />
+  </Suspense>
+);
 ```
 
 ---
 
-## 3. ⚙️ Hooks and Data Management
+## 11. 🤖 AI Assistant Instructions
 
-### 3.1. Hook Placement
-Hooks reside in `model/` directories according to their responsibility:
+When generating React components:
 
-| Hook Type | Location | Description |
-| :--- | :--- | :--- |
-| **Utilities** | `shared/lib/` | `useDebounce`, `useLocalStorage` |
-| **Entity Data** | `entities/{name}/model/` | `useUserQuery` — wrappers over API calls |
-| **Feature Logic** | `features/{name}/model/` | `useLoginMutation`, `usePostForm` |
+1. **Check React Compiler**: If `reactCompiler: true` is enabled in `next.config.ts`, avoid manual memoization (`memo`, `useMemo`, `useCallback`) unless specifically needed
+2. **Identify Component Level**: Determine if it's an Atom, Molecule, Organism, Layout, or Page
+3. **Create TypeScript Interface**: Define explicit props interface with proper typing
+4. **Use Explicit Typing**: Use `(props: PropsType)` instead of `React.FC<PropsType>` for better type inference, generic support, and flexibility
+5. **Follow Naming Conventions**: Use PascalCase for components, descriptive prop names
+6. **Write Pure Components**: Components should be pure functions without mutations
+7. **Include Accessibility**: Add appropriate ARIA attributes and keyboard navigation
+8. **Handle Edge Cases**: Consider loading states, error states, and empty states
+9. **Optimize Performance**: 
+   - With React Compiler: Write clean code, compiler handles optimization
+   - Without React Compiler: Use memo, useMemo, useCallback when appropriate
+10. **Write Tests**: Include unit tests and accessibility tests
+11. **Document Props**: Add JSDoc comments for all components and complex props (in English)
 
-### 3.2. Data Management Strategy
-*   **Public Pages (SSG/ISR)**: Data is fetched directly in **Server Components** using `fetch` or logic from `entities/model`. **React Query is not used** .
-*   **Admin Panel (CSR)**: **React Query** is used for state management and caching.
-    *   **Queries**: `useQuery` in `features/model`.
-    *   **Mutations**: `useMutation` in `features/model`, where `mutationFn` is a **Server Action** [[19], [22]].
-
-### 3.3. Server Actions and Validation
-*   **Primary Mutation Mechanism**: All data changes must go through **Server Actions** [[5], [22]].
-*   **Validation**: Every Server Action **must** include input validation using **Zod** .
-*   **Location**: Server Actions are in `entities/{name}/model/` (for CRUD) or `features/{name}/model/` (for specific actions).
+> **Example Prompt**: "Generate a reusable Modal component that follows accessibility guidelines, includes proper TypeScript typing, and can be used across different React frameworks."
 
 ---
 
-## 4. 🛡️ Security and Best Practices
+## 12. 📚 References
 
-*   **Server-Side Security**: All user input validation and sanitization happen on the server in Server Actions.
-*   **End-to-End Type Safety**: Use **auto-generated GraphQL types** from the AWS Amplify schema (`API.ts`) in the `entities` layer .
-*   **Client Logic Isolation**: Interactive components (`'use client'`) should be minimal “islands,” receiving data and actions from parent Server Components .
-*   **API Encapsulation**: Each module exports only its public API via `index.ts`, hiding internal implementation.
+- [React Documentation](https://react.dev/)
+- [React Compiler](https://react.dev/learn/react-compiler) - Automatic optimization of React components
+- [Next.js React Compiler](https://nextjs.org/docs/app/api-reference/next-config-js/reactCompiler) - React Compiler configuration in Next.js
+- [WCAG Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- [Testing Library](https://testing-library.com/)
+- [Jest Axe](https://github.com/nickcolley/jest-axe)
+- [React Performance](https://react.dev/learn/render-and-commit)
 
----
-
-## 5. 🤖 Instructions for AI Assistants (CursorAI)
-
-When generating code, always follow this checklist:
-
-1.  **Identify the FSD Layer**: What business logic does this belong to? (`shared`, `entities`, `features`, `widgets`, `pages`).
-2.  **Identify the Artifact Type**:
-    *   Global UI primitive? → `shared/ui/atoms` or `molecules`.
-    *   Action component? → `features/{name}/ui`.
-    *   Complex block? → `widgets/{name}/ui`.
-    *   Logic/hook? → `features/{name}/model` or `entities/{name}/model`.
-3.  **Choose Component Type**: Is interactivity needed? If not, use a **Server Component**.
-4.  **Manage Data**:
-    *   Public page? → Fetch in SC.
-    *   Admin Panel? → React Query + Server Action.
-5.  **Validate**: For mutations, always use Zod in a Server Action.
-6.  **Style**: Tailwind CSS + `cn()` only.
-7.  **Type**: All entities must be strictly typed.
-
-> **Example Prompt**: _"Generate a feature for creating a new Post in the Admin Panel using FSD, React Query, and Server Actions with Zod validation in a Next.js App Router v15.5+ project."_
+> ✅ **This document provides universal React component guidelines** that work across all React-based frameworks while maintaining best practices for accessibility, performance, and maintainability.
