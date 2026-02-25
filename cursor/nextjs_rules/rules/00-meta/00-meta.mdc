@@ -1,0 +1,41 @@
+---
+alwaysApply: false
+---
+# 00-meta: Rules of the Rules
+
+These rules are **enforceable**. If something is not enforceable, it does not belong here.
+
+## Conflict resolution
+1. If two rules conflict, follow the rule with the **lower folder number**.
+2. If still ambiguous, prefer:
+   **Security > Correctness > UX > Performance > Style**.
+
+## Language requirements
+- Code and comments: **English**.
+- UI labels: match the product language (default: English unless specified).
+
+## Output discipline (for AI)
+- Do **not** invent files. Only create/edit files explicitly requested by the task.
+- Do **not** change unrelated code “for cleanup”.
+- If a rule would be violated, stop and propose a compliant alternative.
+
+## Definitions
+- **Heavy await**: any DB call, network fetch, or slow auth/role lookup.
+- **Client island**: a `'use client'` component imported by a Server Component.
+
+
+
+## Scope: Next.js-only
+- These rules govern **Next.js (App Router)** projects.
+- Do not introduce or discuss infrastructure/vendor-specific services unless the task explicitly requires it.
+- If a source doc mentions unrelated technologies, treat that as historical context and **do not carry those names into new code**.
+
+## Hard safety rails (FORBIDDEN)
+- ❌ Adding new libraries or tooling without an explicit request in the task.
+- ❌ Inventing endpoints, schemas, env vars, or configuration.
+- ❌ Copying patterns from other frameworks (Astro/Remix/etc.) into this project.
+- ❌ Client-side data fetching (`useEffect` + fetch) for server-owned data when a Server Component can load it.
+- ❌ Shipping console noise: no `console.log` in committed code (use typed logging only if the project already has it).
+
+## When stuck
+If the task is underspecified, do **not** guess. Propose 2–3 compliant options and state what each option changes.

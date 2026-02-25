@@ -1,0 +1,31 @@
+# 90-workflow: Change Discipline
+
+## REQUIRED before coding
+- Identify whether the task affects:
+  - Architecture (RSC/loading)
+  - Data/mutations (actions vs api)
+  - Performance (bundle)
+  - UI (admin rules)
+  - Forms (form pattern)
+Follow applicable rules.
+
+## Required PR-style self-check (even locally)
+- Did you add `'use client'`? If yes: justify and keep it local.
+- Did you add a new dependency? If yes: justify and lazy-load if heavy.
+- Did you add a mutation? Choose Server Action vs Route Handler using the decision rule.
+- Did you add a public page section with data? Wrap it in Suspense and add a skeleton.
+
+## FORBIDDEN
+- ❌ Refactors unrelated to the task.
+- ❌ “While I’m here” changes that expand scope.
+
+
+## Executor mindset (non-negotiable)
+- Execute the requested change, not a redesign.
+- If requirements are missing: propose options; do not guess and implement.
+- Verify against a checklist relevant to the change.
+
+## Verification hooks (pick what applies)
+- UI behavior: run Playwright reproduction.
+- Public pages: run Lighthouse/PageSpeed snapshot.
+- Console errors: confirm clean console via DevTools/console integration.

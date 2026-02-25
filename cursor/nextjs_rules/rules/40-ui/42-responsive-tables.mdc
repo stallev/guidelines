@@ -1,0 +1,27 @@
+# 42-ui: Responsive Admin Tables (>=1280px vs <1280px)
+
+Applies to dense CRUD tables in admin UI.
+
+## Desktop (>=1280px)
+- Use a multi-column table.
+- Keep drag handle column narrow (`w-10`) and consistent.
+- Avoid fixed widths that cause horizontal scroll unless truly necessary.
+
+## Mobile (<1280px): two-column pattern
+- Table becomes 2 columns:
+  1) **Handle** (narrow, e.g. `w-5`)
+  2) **Content** (flex-1) that stacks info vertically
+
+### Content column structure (required)
+1) **Header**: `"{index}. {name}"` (index is part of the title, NOT a separate column)
+   - Status badge goes under the title by default (`flex-col`) so it wraps naturally.
+2) **Details**: key/value rows
+   - description wraps (`whitespace-normal break-words`) and is capped around `max-w-[35ch]`
+   - meta fields use `text-sm text-muted-foreground`
+3) **Actions**: icon-only buttons on mobile
+   - `flex items-center gap-2`
+
+## FORBIDDEN
+- ❌ Separate "№" column on mobile.
+- ❌ Text labels on action buttons on mobile (icons only).
+- ❌ `whitespace-nowrap` on description/details that must wrap.

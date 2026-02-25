@@ -1,0 +1,16 @@
+---
+alwaysApply: false
+---
+# 25-security: Output Safety and Input Validation
+
+## Output (rendering user or external data)
+- Any content rendered into HTML, attributes, or dynamic strings that comes from user or external input must be escaped or sanitized.
+- Do not inject raw user input into the DOM (risk of XSS).
+
+## Input (validation)
+- Validate all incoming data through a shared layer (e.g. Zod schemas in `src/lib/validation/**` or the project’s equivalent).
+- Do not duplicate validation logic inside components; reuse the same schemas for forms, API routes, and Server Actions.
+
+## Auth
+- Protected mutations (Server Actions and Route Handlers) must check authorization before performing the operation.
+- Do not assume the client is trusted; enforce auth on the server for every protected path.

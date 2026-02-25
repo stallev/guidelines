@@ -1,0 +1,21 @@
+# 11-architecture: Loading UI + Streaming Discipline
+
+## REQUIRED
+- Use `loading.tsx` for **route-level** loading only.
+- Use `<Suspense fallback={<SectionSkeleton />}>` for **section-level** streaming.
+- `page.tsx` must be composition-only:
+  - no heavy `await` at root
+  - no role checks / data reads that block first chunk
+  - async work belongs in child async Server Components.
+
+## Skeleton rule (no duplication)
+- Every async section exports:
+  - `Section` and `SectionSkeleton`
+- The same skeleton must be reused in:
+  - `<Suspense fallback={...}>`
+  - `loading.tsx` (when relevant)
+
+## FORBIDDEN
+- ❌ A single giant Suspense around the entire page (kills streaming benefits).
+- ❌ Duplicating the same skeleton markup in multiple places.
+- ❌ Putting long-running `await` in layouts.

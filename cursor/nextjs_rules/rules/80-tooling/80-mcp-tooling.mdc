@@ -1,0 +1,26 @@
+# 80-tooling: MCP-Assisted Debugging & Quality Gates
+
+These are *behavior* rules: use the available MCP tools when they reduce guesswork.
+
+## When you touch UI behavior or regressions
+- Prefer an automated reproduction:
+  - Use the browser automation tool (Playwright MCP) to confirm the bug and validate the fix.
+
+## When you touch performance, SEO, or public pages
+- Run a perf/SEO sanity check:
+  - Lighthouse MCP for lab metrics and audits
+  - PageSpeed MCP for field-ish reporting snapshots
+
+## When you touch console/runtime errors
+- Use DevTools/console integration (DevTools MCP + console-ninja) to:
+  - capture the exact error message/stack
+  - confirm it disappears after the change
+
+## When design fidelity matters
+- Use Figma MCP to pull spacing/typography specs instead of guessing.
+
+## FORBIDDEN
+- ❌ Claiming “fixed” without either:
+  - a deterministic reproduction path, or
+  - a tool-backed check (above), or
+  - a minimal manual verification checklist.

@@ -1,0 +1,20 @@
+# 40-ui: Admin UI Layout Rules
+
+Applies to admin dashboards, CRUD forms, tables.
+
+## Buttons
+- Buttons must be width-by-content (default inline-flex).
+- Use `w-auto` / do not use `w-full` on action buttons unless explicitly required.
+
+## Input widths
+- Short inputs (name, slug, email, phone, price, unit): max width **300px**.
+- Long text/description fields: max width **650px**.
+
+## Layout
+- Use grid/flex with wrap so fields can sit side-by-side and wrap on small screens:
+  - `grid grid-cols-1 gap-4 sm:grid-cols-2` or `flex flex-wrap gap-4`
+- Button groups must use `flex flex-wrap gap-2`.
+
+## FORBIDDEN
+- ❌ Full-width action buttons by default.
+- ❌ Forms where every short field spans the entire page width.

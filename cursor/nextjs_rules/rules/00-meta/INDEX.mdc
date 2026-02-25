@@ -1,0 +1,20 @@
+# Rules Index
+
+Order of precedence (lower number wins):
+
+- 00-meta/00-meta.mdc
+- 10-architecture/10-nextjs-architecture.mdc
+- 10-architecture/11-loading-streaming.mdc
+- 20-data/20-server-actions-vs-api.mdc
+- 25-security/25-output-validation.mdc
+- 30-performance/30-bundle-discipline.mdc
+- 30-performance/31-public-pages.mdc
+- 40-ui/40-admin-ui.mdc
+- 40-ui/41-component-conventions.mdc
+- 40-ui/42-responsive-tables.mdc
+- 40-ui/43-drag-drop-tables.mdc
+- 50-forms/50-form-pattern.mdc
+- 60-utils/60-utilities.mdc
+- 61-react/61-hooks.mdc
+- 80-tooling/80-mcp-tooling.mdc
+- 90-workflow/90-change-discipline.mdc

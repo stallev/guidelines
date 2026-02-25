@@ -1,0 +1,23 @@
+# 30-performance: Bundle + Client JS Discipline
+
+## Targets
+- Client JS must stay lean. Prefer Server Components and tiny client islands.
+- Target guideline: **<= ~150KB gzip per page** (when measured).
+
+## REQUIRED
+- Server Components by default. Keep Client Components small and local.
+- Heavy libraries (date pickers, editors, drag&drop, charts) must be loaded via:
+  - `next/dynamic` or `import()` at point of use
+  - Provide a skeleton/loading fallback for `ssr: false`
+
+## FORBIDDEN
+- ❌ Large “client container” components that import many dependencies.
+- ❌ `import * as Icons` or other non-address imports that break tree-shaking.
+- ❌ Adding new dependencies without a short comment explaining why existing options are insufficient.
+
+## Import discipline
+- Import only what you use (e.g., `lucide-react` by named icons).
+- Avoid client-side formatting/sorting when it can be done on the server.
+
+## When you touch UI
+- If you add a new interactive widget or a new library, you must ensure it does not force large client bundle on unrelated routes.

@@ -1,0 +1,38 @@
+---
+alwaysApply: false
+---
+
+# 10-architecture: Next.js App Router + RSC Discipline
+
+## Default stance
+- **Server Components by default.**
+- Add `'use client'` **only** when the component needs:
+  - React state (`useState`, `useReducer`)
+  - Event handlers (onClick, onChange…)
+  - Browser-only APIs (window, document, localStorage)
+  - Client-only libraries (charts/editors/drag-drop)
+
+## FORBIDDEN
+- ❌ Putting `'use client'` in `app/**/page.tsx` or `app/**/layout.tsx` unless absolutely required and justified in code comments.
+- ❌ Heavy `await` in:
+  - `app/**/layout.tsx`
+  - `app/**/page.tsx`
+  If the route must open instantly, heavy work belongs in **child async components**.
+- ❌ Blocking the first RSC chunk with role checks or DB reads in layout.
+
+## REQUIRED: Fast route transitions (streaming)
+- Keep `page.tsx` and segment `layout.tsx` **lightweight**:
+  - OK: `await params`, minimal cookie/session read, quick redirect.
+  - NOT OK: DB queries, large aggregations, slow permission checks.
+- Move heavy work into child async components and wrap each heavy block with:
+  - `<Suspense fallback={<BlockSkeleton />}>`
+
+## loading.tsx vs Suspense
+- Use `loading.tsx` for **route-level** loading UI.
+- Use `<Suspense fallback>` for **within-page** streaming.
+- Do **not** show the same loading UI twice (no duplicate full-page fallback).
+
+## Skeleton requirements
+- Skeleton must mirror layout structure.
+- Include `aria-label` for accessibility.
+- Keep skeleton components <= ~120 lines; split if needed.

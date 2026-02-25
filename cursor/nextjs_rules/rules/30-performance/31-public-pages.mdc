@@ -1,0 +1,24 @@
+# 31-performance: Public Pages Streaming + SEO
+
+Applies to `(public)` routes: homepage, landing pages, service index pages.
+
+## REQUIRED
+- `page.tsx` is composition-only: **no heavy await at root**.
+- One `<Suspense fallback={<SectionSkeleton />}>` per async section.
+- Shared datasets used by multiple sections must be deduplicated via `cache()` fetchers.
+
+## Skeleton reuse
+- The same skeleton component should be used:
+  - as Suspense fallback
+  - inside `loading.tsx` (route-level)
+Avoid duplicated markup.
+
+## SEO
+- Every public page must export `metadata` (or `generateMetadata`) with:
+  - title
+  - description
+  - openGraph (title, description, type: 'website')
+
+## LCP rules
+- **Hero as LCP:** On the hero Image set `priority` and, if supported, `fetchPriority="high"`. Do not use separate preload mechanisms (e.g. ReactDOM.preload or link preload) for the hero.
+- **Grid/index pages:** If the first visible card image may be LCP, add an optional `priority` prop to the card (and image); pass `priority={true}` only for the first item using indices (e.g. `categoryIndex === 0 && serviceIndex === 0`). Do not mutate a variable during render.

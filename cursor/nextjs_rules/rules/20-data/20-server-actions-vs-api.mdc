@@ -1,0 +1,29 @@
+# 20-data: Mutations — Server Actions vs Route Handlers
+
+## Core rule
+Choosing the wrong mutation path causes unnecessary rerenders and slow UX.
+
+### Server Action (`'use server'`) — USE WHEN
+- Form submit (create/update) where the user expects the page to reflect saved data.
+- Modal close that must refresh parent list/table.
+- Post-mutation navigation/redirect.
+- Progressive enhancement is desired (works without JS).
+
+### Route Handler (`app/api/**/route.ts`) — USE WHEN
+- Inline edits with optimistic UI (toggle, quick status update, table cell edit).
+- High-frequency successive mutations.
+- The current page has heavy Server Components where rerendering is expensive.
+
+## FORBIDDEN
+- ❌ Using Server Actions for rapid inline edits / bulk toggles.
+- ❌ Duplicating business logic in both actions and route handlers.
+
+## REQUIRED: Shared layer
+- Validation schemas in `src/lib/validation/**` (Zod).
+- Data access helpers in `src/lib/db/**` (or a dedicated data layer).
+- Both Server Actions and Route Handlers must reuse the same validation + data calls.
+- Both must enforce auth/authorization.
+
+## Revalidation
+- Server Actions: use `revalidatePath` / `revalidateTag` when caches must be invalidated.
+- Route Handlers: client owns UI state; only invalidate caches when needed for future navigations.

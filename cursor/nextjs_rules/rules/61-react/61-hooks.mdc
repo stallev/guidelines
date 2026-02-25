@@ -1,0 +1,20 @@
+# 61-react: Hooks Discipline (Client Components)
+
+## REQUIRED
+- Name hooks `use{Name}`; one hook, one clear purpose; define an explicit return type (interface) for the hook.
+- Hooks are client-only. Keep them inside the smallest possible client island.
+- Do not fetch or hold server-owned data in hooks when that data can be provided by a Server Component.
+- Prefer built-in platform/React APIs; add custom hooks only when reuse is proven.
+
+## Error + rejection handling (optional but consistent)
+If you implement a global client error capture hook:
+- attach/remove listeners in `useEffect`
+- capture both:
+  - `error`
+  - `unhandledrejection`
+- provide a `reset()` mechanism
+
+## FORBIDDEN
+- ❌ Hooks that fetch server-owned data which could be loaded in a Server Component.
+- ❌ Hooks with side effects that run on every render (missing deps).
+- ❌ Storing derived data in state when it can be computed.

@@ -1,0 +1,21 @@
+---
+alwaysApply: true
+---
+# 41-ui: Component Conventions (React + TS)
+
+## REQUIRED
+- Components are arrow functions:
+  - `export const Component = (props: Props) => { ... }`
+- Prefer named exports for tree-shaking.
+- Explicit props interfaces in TypeScript.
+- Accessibility: provide ARIA labels where needed; focus states must work with keyboard.
+- Single responsibility per component; prefer composition over inheritance.
+- Keep skeleton and UI components to a reasonable size (~100 lines); split into smaller components if larger.
+
+## FORBIDDEN
+- ❌ `React.FC` unless you have a specific reason (rare).
+- ❌ Mutating props or relying on render-time mutations.
+
+## Framework boundaries
+- Server Components must not import client-only dependencies.
+- When a component needs interactivity, split into a Server wrapper and a small client island; keep the client boundary as small as possible.

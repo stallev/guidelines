@@ -1,281 +1,281 @@
-# Общие рекомендации по составлению эффективных промптов для AI-ассистентов
+# General Guidelines for Writing Effective Prompts for AI Assistants
 
 > [!NOTE]
-> Данный документ основан на анализе статьи "I Accidentally Made Claude 45% Smarter" и других авторитетных источников по prompt engineering. Рекомендации применимы к Claude, ChatGPT, Cursor AI и другим современным LLM.
+> This document is based on an analysis of the article "I Accidentally Made Claude 45% Smarter" and other authoritative sources on prompt engineering. The recommendations apply to Claude, ChatGPT, Cursor AI, and other modern LLMs.
 
 ---
 
-## 1. Психологические триггеры для повышения качества ответов
+## 1. Psychological Triggers for Improving Response Quality
 
-### 1.1 Техника "Глубокого вдоха" (Deep Breath Technique)
+### 1.1 Deep Breath Technique
 
-Исследователи Google DeepMind обнаружили, что фраза **"Take a deep breath and work through this step by step"** повышает точность на 9% и более. В комбинации с "let's think step by step" точность на математических задачах возрастала с 34% до 80.2%.
+Google DeepMind researchers discovered that the phrase **"Take a deep breath and work through this step by step"** improves accuracy by 9% or more. When combined with "let's think step by step," accuracy on mathematical problems increased from 34% to 80.2%.
 
 ```markdown
-Пример промпта:
-"Вдохни глубоко, расправь плечи и приступай к решению задачи шаг за шагом."
+Example prompt:
+"Take a deep breath, straighten your shoulders, and work through this problem step by step."
 ```
 
-### 1.2 Техника вознаграждения (Incentive Prompt)
+### 1.2 Incentive Prompt Technique
 
-Фраза о потенциальном вознаграждении активирует паттерны "высококачественных ответов" из обучающих данных:
+Mentioning a potential reward activates "high-quality response" patterns from training data:
 
 ```markdown
-"Я заплачу тебе $200 за идеальное решение этой проблемы."
+"I'll pay you $200 for a perfect solution to this problem."
 ```
 
 > [!WARNING]
-> Модель не понимает денег буквально — это паттерн-матчинг к примерам в обучающих данных, где упоминание оплаты коррелировало с качественными решениями.
+> The model doesn't understand money literally—this is pattern matching to examples in training data where mentions of payment correlated with quality solutions.
 
-### 1.3 Техника вызова (Challenge Prompt)
+### 1.3 Challenge Prompt Technique
 
-Постановка задачи как вызова стимулирует более тщательный анализ:
+Framing a task as a challenge stimulates more thorough analysis:
 
 ```markdown
-"Держу пари, ты не сможешь решить это правильно. Докажи, что я ошибаюсь."
+"I bet you can't solve this correctly. Prove me wrong."
 ```
 
-### 1.4 Техника высоких ставок (Stakes Prompt)
+### 1.4 Stakes Prompt Technique
 
-Подчёркивание важности задачи:
+Emphasizing the importance of the task:
 
 ```markdown
-"Это очень важно для моей карьеры. Убедись, что ответ точный."
+"This is very important for my career. Make sure the answer is accurate."
 ```
 
-### 1.5 Техника самопроверки (Self-Check)
+### 1.5 Self-Check Technique
 
-После получения ответа попросите модель оценить уверенность:
+After receiving a response, ask the model to assess its confidence:
 
 ```markdown
-"Оцени свою уверенность в ответе от 1 до 10. Если меньше 8, пересмотри решение."
+"Rate your confidence in the answer from 1 to 10. If less than 8, reconsider the solution."
 ```
 
 ---
 
-## 2. Структурирование промптов
+## 2. Prompt Structuring
 
-### 2.1 Использование XML-тегов
+### 2.1 Using XML Tags
 
-Claude и другие модели специально обучены распознавать XML-теги для структурирования:
+Claude and other models are specifically trained to recognize XML tags for structuring:
 
 ```xml
 <context>
-Описание проекта и его контекста
+Project description and its context
 </context>
 
 <task>
-Конкретная задача, которую нужно выполнить
+Specific task that needs to be completed
 </task>
 
 <constraints>
-Ограничения и требования
+Constraints and requirements
 </constraints>
 
 <output_format>
-Желаемый формат ответа
+Desired response format
 </output_format>
 ```
 
-### 2.2 Приоритизация информации
+### 2.2 Information Prioritization
 
-Располагайте критически важную информацию:
-- **В начале** — для установки контекста
-- **В конце** — для акцента на ключевых инструкциях
+Place critically important information:
+- **At the beginning** — to establish context
+- **At the end** — to emphasize key instructions
 
-Модели Claude уделяют особое внимание концу промпта.
+Claude models pay special attention to the end of the prompt.
 
-### 2.3 Использование специальных маркеров
+### 2.3 Using Special Markers
 
 ```xml
-<CRITICAL>Критически важная информация</CRITICAL>
-<CONSTRAINT>Обязательное ограничение</CONSTRAINT>
-<thinking>Пространство для размышлений модели</thinking>
+<CRITICAL>Critically important information</CRITICAL>
+<CONSTRAINT>Mandatory constraint</CONSTRAINT>
+<thinking>Space for model reasoning</thinking>
 ```
 
 ---
 
-## 3. Принцип ясности и конкретности
+## 3. Principle of Clarity and Specificity
 
-### 3.1 Будьте максимально конкретны
+### 3.1 Be as Specific as Possible
 
-| ❌ Плохо | ✅ Хорошо |
-|----------|-----------|
-| "Напиши функцию" | "Напиши PHP-функцию для WordPress, которая принимает ID поста, проверяет существование мета-поля 'custom_price' и возвращает отформатированную цену с валютой" |
-| "Исправь баг" | "Исправь TypeError в строке 45 файла functions.php, где переменная $meta_value используется как массив, но может быть null" |
+| ❌ Bad | ✅ Good |
+|--------|--------|
+| "Write a function" | "Write a PHP function for WordPress that accepts a post ID, checks for the existence of the 'custom_price' meta field, and returns a formatted price with currency" |
+| "Fix the bug" | "Fix the TypeError on line 45 of functions.php where the $meta_value variable is used as an array but can be null" |
 
-### 3.2 Указывайте контекст проекта
+### 3.2 Specify Project Context
 
 ```markdown
-Контекст:
-- Версия PHP: 8.1
-- Версия WordPress: 6.4
-- Используемые плагины: Carbon Fields 3.6
-- Стандарты кодирования: WordPress Coding Standards
+Context:
+- PHP version: 8.1
+- WordPress version: 6.4
+- Plugins used: Carbon Fields 3.6
+- Coding standards: WordPress Coding Standards
 ```
 
-### 3.3 Определяйте формат вывода
+### 3.3 Define Output Format
 
 ```markdown
-Выведи результат в следующем формате:
-1. Краткое описание решения (1-2 предложения)
-2. Код с inline-комментариями
-3. Примеры использования
-4. Возможные edge-cases
+Output the result in the following format:
+1. Brief description of the solution (1-2 sentences)
+2. Code with inline comments
+3. Usage examples
+4. Possible edge cases
 ```
 
 ---
 
-## 4. Техника Chain-of-Thought (Цепочка рассуждений)
+## 4. Chain-of-Thought Technique
 
-### 4.1 Явный запрос пошагового анализа
+### 4.1 Explicit Request for Step-by-Step Analysis
 
 ```markdown
-Прежде чем писать код:
-1. Проанализируй требования
-2. Определи необходимые зависимости
-3. Продумай структуру решения
-4. Оцени потенциальные проблемы
-5. Только после этого приступи к реализации
+Before writing code:
+1. Analyze the requirements
+2. Identify necessary dependencies
+3. Think through the solution structure
+4. Assess potential issues
+5. Only then proceed with implementation
 ```
 
-### 4.2 Предоставление пространства для размышлений
+### 4.2 Providing Space for Reasoning
 
 ```xml
 <thinking>
-Используй этот блок для анализа задачи перед ответом
+Use this block to analyze the task before responding
 </thinking>
 
 <answer>
-Здесь предоставь финальный ответ
+Provide the final answer here
 </answer>
 ```
 
 ---
 
-## 5. Few-Shot Prompting (Обучение на примерах)
+## 5. Few-Shot Prompting
 
-### 5.1 Предоставляйте эталонные примеры
+### 5.1 Provide Reference Examples
 
 ```markdown
-Вот пример правильного решения аналогичной задачи:
+Here's an example of a correct solution to a similar task:
 
-Вход: [пример входных данных]
-Выход: [пример ожидаемого результата]
+Input: [example input data]
+Output: [example expected result]
 
-Теперь реши следующую задачу по аналогии:
-Вход: [новые входные данные]
+Now solve the following task similarly:
+Input: [new input data]
 ```
 
-### 5.2 Используйте "золотые стандарты"
+### 5.2 Use "Golden Standards"
 
-Ссылайтесь на эталонные файлы в проекте:
-
-```markdown
-Используй структуру и стиль кода из файла 
-controllers/ExampleController.php как образец.
-```
-
----
-
-## 6. Назначение ролей (Persona Assignment)
-
-### 6.1 Конкретные экспертные роли
-
-| ❌ Общая роль | ✅ Детализированная роль |
-|---------------|-------------------------|
-| "Ты — программист" | "Ты — senior PHP developer с 10-летним опытом разработки WordPress тем и плагинов, специализирующийся на безопасности и производительности" |
-
-### 6.2 Комбинация экспертиз
+Reference exemplary files in the project:
 
 ```markdown
-Действуй как команда экспертов:
-1. Backend Developer — отвечает за PHP-логику
-2. Security Specialist — проверяет уязвимости
-3. WordPress Expert — следит за соответствие стандартам
+Use the structure and code style from the file 
+controllers/ExampleController.php as a template.
 ```
 
 ---
 
-## 7. Итеративное уточнение
+## 6. Persona Assignment
 
-### 7.1 Диалоговый подход
+### 6.1 Specific Expert Roles
 
-```markdown
-Шаг 1: "Опиши архитектуру решения без кода"
-Шаг 2: "Теперь реализуй основную функцию"
-Шаг 3: "Добавь обработку ошибок"
-Шаг 4: "Оптимизируй производительность"
-```
+| ❌ Generic Role | ✅ Detailed Role |
+|-----------------|------------------|
+| "You are a programmer" | "You are a senior PHP developer with 10 years of experience developing WordPress themes and plugins, specializing in security and performance" |
 
-### 7.2 Корректировка на основе ошибок
-
-Если модель допустила ошибку:
+### 6.2 Combining Expertise
 
 ```markdown
-В предыдущем ответе ты использовал устаревший 
-метод add_meta_box(). В WordPress 6.0+ следует 
-использовать register_post_meta() с REST API поддержкой.
-Исправь код с учётом этого.
+Act as a team of experts:
+1. Backend Developer — responsible for PHP logic
+2. Security Specialist — checks for vulnerabilities
+3. WordPress Expert — ensures compliance with standards
 ```
 
 ---
 
-## 8. Позитивные формулировки
+## 7. Iterative Refinement
 
-### 8.1 Инструкции "делай" вместо "не делай"
+### 7.1 Dialog Approach
 
-| ❌ Негативно | ✅ Позитивно |
-|--------------|-------------|
-| "Не используй глобальные переменные" | "Используй только локальные переменные в области видимости функции" |
-| "Не забудь про валидацию" | "Добавь валидацию всех входных данных" |
+```markdown
+Step 1: "Describe the solution architecture without code"
+Step 2: "Now implement the main function"
+Step 3: "Add error handling"
+Step 4: "Optimize performance"
+```
+
+### 7.2 Correction Based on Errors
+
+If the model made an error:
+
+```markdown
+In your previous response, you used the deprecated 
+method add_meta_box(). In WordPress 6.0+, you should 
+use register_post_meta() with REST API support.
+Fix the code accordingly.
+```
 
 ---
 
-## 9. Декомпозиция сложных задач
+## 8. Positive Formulations
 
-### 9.1 Разбивайте большие задачи
+### 8.1 "Do" Instructions Instead of "Don't"
 
-Вместо:
+| ❌ Negative | ✅ Positive |
+|-------------|-------------|
+| "Don't use global variables" | "Use only local variables within the function scope" |
+| "Don't forget validation" | "Add validation for all input data" |
+
+---
+
+## 9. Decomposition of Complex Tasks
+
+### 9.1 Break Down Large Tasks
+
+Instead of:
 ```markdown
-"Создай полноценную тему WordPress с кастомными полями и REST API"
+"Create a full WordPress theme with custom fields and REST API"
 ```
 
-Используйте:
+Use:
 ```markdown
-"Задача 1: Создай структуру файлов темы с style.css и functions.php"
-"Задача 2: Настрой подключение Carbon Fields"  
-"Задача 3: Определи контейнеры полей для страницы About"
+"Task 1: Create the theme file structure with style.css and functions.php"
+"Task 2: Set up Carbon Fields integration"  
+"Task 3: Define field containers for the About page"
 ...
 ```
 
 ### 9.2 Prompt Chaining
 
-Используйте результат предыдущего промпта как вход для следующего:
+Use the result of the previous prompt as input for the next:
 
 ```markdown
-Промпт 1: "Проанализируй структуру данных"
-Промпт 2: "На основе анализа создай схему БД"
-Промпт 3: "На основе схемы напиши миграции"
+Prompt 1: "Analyze the data structure"
+Prompt 2: "Based on the analysis, create a database schema"
+Prompt 3: "Based on the schema, write migrations"
 ```
 
 ---
 
-## 10. Prefilling (Предзаполнение ответа)
+## 10. Prefilling
 
-### 10.1 Направляйте начало ответа
+### 10.1 Guide the Beginning of the Response
 
 ```markdown
-Начни свой ответ с: "Оптимальное решение включает..."
+Start your answer with: "The optimal solution includes..."
 ```
 
-Это помогает избежать вступительных фраз и сразу получить суть.
+This helps avoid introductory phrases and get straight to the point.
 
-### 10.2 Задавайте формат кода
+### 10.2 Specify Code Format
 
 ```markdown
-Ответь только кодом PHP без дополнительных пояснений.
-Код должен начинаться с:
+Respond with PHP code only, without additional explanations.
+The code should start with:
 <?php
 /**
  * @package MyTheme
@@ -283,126 +283,126 @@ controllers/ExampleController.php как образец.
 
 ---
 
-## 11. Избегание типичных ошибок
+## 11. Avoiding Common Mistakes
 
-### 11.1 Распространённые антипаттерны
+### 11.1 Common Anti-Patterns
 
-- **Размытые цели** → Формулируйте чёткий желаемый результат
-- **Отсутствие контекста** → Всегда предоставляйте релевантный фон
-- **Перегрузка информацией** → Держите промпт сфокусированным
-- **Смешение режимов** → Не смешивайте написание, ревью и обучение в одном промпте
-- **Повторение инструкций** → Избегайте дублирования
+- **Vague goals** → Formulate a clear desired outcome
+- **Lack of context** → Always provide relevant background
+- **Information overload** → Keep the prompt focused
+- **Mixing modes** → Don't mix writing, review, and training in one prompt
+- **Repeating instructions** → Avoid duplication
 
-### 11.2 Проверка промпта
+### 11.2 Prompt Checklist
 
-Перед отправкой убедитесь, что промпт отвечает на вопросы:
-1. **Что** конкретно нужно сделать?
-2. **Почему** это нужно (контекст)?
-3. **Как** должен выглядеть результат?
-4. **Какие** ограничения существуют?
-
----
-
-## 12. Метапромптинг
-
-### 12.1 Попросите AI улучшить промпт
-
-```markdown
-Проанализируй следующий промпт и улучши его:
-- Убери избыточность
-- Добавь необходимую структуру
-- Повысь ясность
-
-Оригинальный промпт: [ваш промпт]
-```
-
-### 12.2 Запрос альтернативных подходов
-
-```markdown
-Предложи 3 разных подхода к решению задачи с 
-указанием плюсов и минусов каждого.
-```
+Before sending, ensure the prompt answers these questions:
+1. **What** specifically needs to be done?
+2. **Why** is this needed (context)?
+3. **How** should the result look?
+4. **What** constraints exist?
 
 ---
 
-## 13. Шаблон универсального промпта
+## 12. Meta-Prompting
+
+### 12.1 Ask AI to Improve the Prompt
 
 ```markdown
-# Роль
-Ты — [конкретная экспертная роль]
+Analyze the following prompt and improve it:
+- Remove redundancy
+- Add necessary structure
+- Increase clarity
 
-# Контекст
-- Проект: [описание]
-- Технологии: [стек]
-- Ограничения: [список]
+Original prompt: [your prompt]
+```
 
-# Задача
-[Конкретное описание того, что нужно сделать]
+### 12.2 Request Alternative Approaches
 
-# Требования
-1. [Требование 1]
-2. [Требование 2]
+```markdown
+Suggest 3 different approaches to solving the task with 
+an indication of the pros and cons of each.
+```
+
+---
+
+## 13. Universal Prompt Template
+
+```markdown
+# Role
+You are [specific expert role]
+
+# Context
+- Project: [description]
+- Technologies: [stack]
+- Constraints: [list]
+
+# Task
+[Specific description of what needs to be done]
+
+# Requirements
+1. [Requirement 1]
+2. [Requirement 2]
 ...
 
-# Формат вывода
-[Описание желаемой структуры ответа]
+# Output Format
+[Description of desired response structure]
 
-# Примеры (опционально)
-Вход: [пример]
-Выход: [пример]
+# Examples (optional)
+Input: [example]
+Output: [example]
 
-# Дополнительные инструкции
-- Вдохни глубоко и работай пошагово
-- Это очень важная задача для проекта
+# Additional Instructions
+- Take a deep breath and work step by step
+- This is a very important task for the project
 ```
 
 ---
 
-## 14. Специфика работы с Cursor AI
+## 14. Cursor AI Specifics
 
 ### 14.1 Cursor Rules
 
-Создавайте файлы правил в `.cursor/rules/`:
+Create rule files in `.cursor/rules/`:
 
 ```markdown
-# Пример .cursor/rules/wordpress.mdc
+# Example .cursor/rules/wordpress.mdc
 
-## Общие правила WordPress
-- Используй WordPress Coding Standards
-- Применяй escape-функции для вывода: esc_html(), esc_attr()
-- Используй nonce для форм
-- Добавляй inline-комментарии в PHPDoc формате
+## General WordPress Rules
+- Use WordPress Coding Standards
+- Apply escape functions for output: esc_html(), esc_attr()
+- Use nonce for forms
+- Add inline comments in PHPDoc format
 ```
 
-### 14.2 Использование контекста
+### 14.2 Using Context
 
-- `@Files` — ссылка на конкретные файлы
-- `@Folders` — ссылка на директории
-- `@Codebase` — весь проект
-- `@Docs` — документация
-- `@Web` — поиск в интернете
+- `@Files` — reference specific files
+- `@Folders` — reference directories
+- `@Codebase` — entire project
+- `@Docs` — documentation
+- `@Web` — internet search
 
-### 14.3 Создание Notepads
+### 14.3 Creating Notepads
 
-Сохраняйте часто используемые промпты как Notepads для быстрого доступа.
+Save frequently used prompts as Notepads for quick access.
 
 ---
 
-## Заключение
+## Conclusion
 
 > [!TIP]
-> Эффективный prompt engineering — это навык, который развивается с практикой. Начните с базовых техник и постепенно добавляйте более сложные.
+> Effective prompt engineering is a skill that develops with practice. Start with basic techniques and gradually add more complex ones.
 
-Ключевые принципы:
-1. **Ясность** — формулируйте чётко и конкретно
-2. **Контекст** — предоставляйте релевантную информацию
-3. **Структура** — используйте разметку и теги
-4. **Примеры** — показывайте желаемый результат
-5. **Итерация** — уточняйте и совершенствуйте промпты
+Key principles:
+1. **Clarity** — formulate clearly and specifically
+2. **Context** — provide relevant information
+3. **Structure** — use markup and tags
+4. **Examples** — show the desired result
+5. **Iteration** — refine and improve prompts
 
 ---
 
-## Источники
+## Sources
 
 - "I Accidentally Made Claude 45% Smarter" — Medium (@ichigoSan)
 - Anthropic Claude Documentation

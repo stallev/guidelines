@@ -1,0 +1,18 @@
+# 60-utils: Utility Functions (Server-safe + Client-safe)
+
+## Definition
+A utility is a **pure function**:
+- deterministic
+- side-effect-free
+- no React hooks
+- no access to browser globals at module scope
+
+## REQUIRED
+- Group utilities by domain (e.g. string, date, array, object, validation) under `src/lib/**` or the project's existing utilities folder.
+- Every utility must have explicit argument and return types; keep a unit-test-friendly shape (no hidden dependencies).
+- Prefer small, composable functions over "do-everything" helpers.
+
+## FORBIDDEN
+- ❌ Utilities that import from React or Next.js runtime modules.
+- ❌ Mutating inputs.
+- ❌ Reading `window/document/localStorage` at import time.

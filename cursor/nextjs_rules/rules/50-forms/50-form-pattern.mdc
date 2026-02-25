@@ -1,0 +1,25 @@
+# 50-forms: Standard Form Pattern (React + react-hook-form + Zod)
+
+## Architecture (required)
+`use*Form hook` → `*Form` component → `*-field` molecules → `*-submit-button`
+
+## REQUIRED
+- Use `react-hook-form` + `zodResolver`.
+- Validation schemas live in `src/lib/validation/**`.
+- Submit uses `useTransition` and shows pending UI.
+- Toast success/error feedback (project standard).
+- Submit button must be width-by-content: `className="w-auto px-6"`.
+
+## Cancel is mandatory
+- Every form must include a Cancel button that:
+  - calls `form.reset()` before navigation
+  - uses `router.back()` by default (or a provided `onCancel`)
+
+## URL fields validation
+- If URL field can be empty, schema must allow empty string:
+  - `.optional().or(z.literal(''))`
+
+## FORBIDDEN
+- ❌ Missing Cancel button on forms.
+- ❌ Duplicating validation logic inside components instead of Zod schemas.
+- ❌ `w-full` submit button unless explicitly required by a narrow modal.

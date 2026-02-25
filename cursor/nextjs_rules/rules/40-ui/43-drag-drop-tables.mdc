@@ -1,0 +1,31 @@
+# 43-ui: Drag & Drop Reordering (Admin Tables)
+
+Applies when implementing row reordering.
+
+## REQUIRED architecture
+- A **client** table component (`'use client'`) that owns local order state.
+- `SortableRow` per item (the only part that directly uses sortable hooks).
+- A server-side mutation (Server Action or Route Handler) that persists `[{id, order}]`.
+
+## REQUIRED UX behavior
+- Optimistic reorder locally first (`arrayMove`), then persist.
+- On success:
+  - show success toast
+  - `router.refresh()` to reconcile RSC
+- On failure:
+  - show error toast
+  - revert to `initialItems`
+
+## Required a11y + mobile
+- Support both:
+  - Pointer sensor
+  - Keyboard sensor (`sortableKeyboardCoordinates`)
+- Drag handle button must be touch-safe:
+  - `cursor-grab active:cursor-grabbing touch-none`
+  - target size ~44×44px
+- Add `suppressHydrationWarning` where needed to avoid dnd-induced hydration mismatches.
+
+## FORBIDDEN
+- ❌ Dragging without keyboard support.
+- ❌ Persisting without an error rollback path.
+- ❌ Saving order on every hover/move (save only on drag end).
