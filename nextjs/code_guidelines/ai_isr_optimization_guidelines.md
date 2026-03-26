@@ -635,10 +635,10 @@ revalidateTag('grades');
 
 ## 10. Связанные документы
 
-- [ISR Optimization Analysis](../../optimization/GRADES_PAGES_ISR_OPTIMIZATION.md) — детальный анализ ISR оптимизации
-- [Server Actions Documentation](../../api/SERVER_ACTIONS.md) — документация по Server Actions
-- [Architecture Documentation](../../architecture/ARCHITECTURE.md) — архитектура проекта
-- [AWS Amplify Compatibility](../../infrastructure/AMPLIFY_COMPATIBILITY.md) — совместимость с AWS Amplify
+- Официальная документация Next.js по ISR и revalidation.
+- Официальная документация Next.js по Server Actions.
+- Внутренние архитектурные документы конкретного проекта (если применимо).
+- Платформенные ограничения документации выбранного хостинга.
 
 ---
 

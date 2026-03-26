@@ -933,7 +933,7 @@ Requirements:
 ### Internal Documentation
 - [Architecture Concept (AWS Infrastructure)](architectecture_concept.md)
 - [Best Patterns](best_patterns.md)
-- [Project Functionality](../project_functionality/project_functionality.md)
+- Project functionality documentation should be defined in your repository architecture docs.
 
 ### External References
 - [Next.js App Router Documentation](https://nextjs.org/docs/app)

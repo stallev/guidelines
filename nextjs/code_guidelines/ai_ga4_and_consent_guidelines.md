@@ -3,8 +3,8 @@
 ## Document Version: 1.0
 
 **Creation Date:** February 2026  
-**Project:** plumb_sm  
-**Technologies:** Next.js 16 (App Router), React 19, @next/third-parties, TypeScript
+**Scope:** reusable guideline for Next.js App Router projects  
+**Technologies:** current stable Next.js (App Router), React, @next/third-parties, TypeScript
 
 > [!NOTE]
 > This guideline describes how Google Analytics 4 (GA4) is integrated and how cookie/analytics consent (GDPR/CCPA) is implemented. When changing analytics or consent flows, follow this document and verify against [Next.js Script](https://nextjs.org/docs/app/api-reference/components/script) and [Optimizing Scripts](https://nextjs.org/docs/app/guides/scripts).

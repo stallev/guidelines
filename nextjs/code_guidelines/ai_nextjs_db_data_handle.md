@@ -1,12 +1,9 @@
 # Next.js Data Access: Server Actions vs API Routes
 
-## Document Version: 1.0
+## Document Version: 2.0
+**Scope:** current stable Next.js (App Router), React, TypeScript
 
-**Creation Date:** February 2026  
-**Project:** neon_bpl (Plumbing website)  
-**Technologies:** Next.js 16 (App Router), React 19, Prisma, Neon PostgreSQL
-
-This document is the **source of truth** for when to use Server Actions vs API Routes (Route Handlers) for reading and mutating application data. AI agents MUST follow this guideline when implementing data access or mutations.
+This document defines decision rules for when to use Server Actions vs Route Handlers for reads/mutations in App Router.
 
 ---
 
@@ -112,7 +109,10 @@ src/
 
 ---
 
-## 5. revalidatePath and revalidateTag
+## 5. revalidatePath, revalidateTag, and updateTag
+
+> [!IMPORTANT]
+> Use cache APIs as defined in official Next.js docs: **`updateTag`** for read-your-writes UX, **`revalidateTag`** for tag-based stale-while-revalidate semantics, **`revalidatePath`** for route-path invalidation.
 
 - **Server Actions:** Call `revalidatePath('/path')` or `revalidateTag('tag')` when you want the next navigation or refresh to see fresh data. This invalidates Next.js caches; the automatic re-render after the action will then use up-to-date data.
 - **API Routes:** The client typically updates its own state (e.g. optimistic UI). No automatic re-render occurs. If the user later navigates away and back, or refreshes, the page will fetch again; you can still use `revalidatePath`/`revalidateTag` in other flows (e.g. a Server Action that runs on the next form submit) to keep cache consistent.
@@ -121,11 +121,11 @@ src/
 
 ## 6. File Layout (Recommendation)
 
-| Location                             | Purpose                                                                                            |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| `src/actions/`                       | Server Actions for forms, modals, and any flow that benefits from a full re-render after mutation. |
-| `src/app/api/.../route.ts`           | Route Handlers for inline edit, high-frequency mutations, or when re-render would be expensive.    |
-| `src/lib/db/`, `src/lib/validation/` | Shared by both; no duplication of mutation or validation logic.                                    |
+| Location | Purpose |
+|----------|---------|
+| `src/actions/` | Server Actions for forms, modals, and any flow that benefits from a full re-render after mutation. |
+| `src/app/api/.../route.ts` | Route Handlers for inline edit, high-frequency mutations, or when re-render would be expensive. |
+| `src/lib/db/`, `src/lib/validation/` | Shared by both; no duplication of mutation or validation logic. |
 
 ---
 
@@ -145,14 +145,13 @@ Before implementing a mutation, apply this decision flow:
 
 ---
 
-## 8. Related Documentation
+## 8. Official References
 
-- [Auth & Data Management](../../architecture/auth_data_management.md) — Section 5: Data Fetching Patterns and general rule that application data is read/mutated only via Server Components, Server Actions, or API Routes as specified here.
-- [Next.js Loading Patterns](./ai_loading_patterns.md) — Loading and streaming patterns for pages.
-- [Agent Execution Rules](../../implementation/agent_execution_rules.md) — States that this guideline takes priority over the reference project `docs/examples/my_site` for Server Actions vs API Routes decisions.
-- [Workflow Rules](../../.cursor/rules/workflowrule.mdc) — Same priority rule for data access and mutation patterns.
+- Next.js Server Actions: [https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations)
+- Next.js Route Handlers: [https://nextjs.org/docs/app/building-your-application/routing/route-handlers](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)
+- Next.js Caching and Revalidating: [https://nextjs.org/docs/app/getting-started/caching-and-revalidating](https://nextjs.org/docs/app/getting-started/caching-and-revalidating)
 
 ---
 
-**Last Updated:** February 2026  
-**Applies To:** AI Agent (Cursor AI) for neon_bpl project
+**Last Updated:** March 2026  
+**Applies To:** any Next.js App Router project
