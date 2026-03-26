@@ -4,6 +4,8 @@
 
 ## Состав документации
 
+- `00-site-structure-user-flow-architecture.md` - aggregate overview структуры сайта, user flow и architecture
+- `09-code-implementation-phases.md` - перечень code-имплементационных фаз (4-8) и входы/выходы
 - `01-competitive-serp-and-conversion-research.md` - исследование SERP, интентов и конверсионных паттернов.
 - `02-information-architecture-and-content-spec.md` - спецификация IA, user flows и контентной модели.
 - `03-pen-design-system-and-page-spec.md` - спецификация `.pen` макетов и дизайн-системы.
@@ -13,6 +15,11 @@
 - `07-motion-and-microinteractions-guidelines.md` - системные правила motion и microinteractions.
 - `08-pagespeed-green-zone-playbook.md` - playbook выхода в Google PageSpeed green zone.
 - `templates/` - шаблоны для повторяемого процесса.
+- `10-phase-04-nextjs-code-tasks.md` - AI-agent task pack для Phase 04 (Next.js implementation)
+- `11-phase-05-qa-performance-tasks.md` - AI-agent task pack для Phase 05 (AI Design Match + QA + perf gates)
+- `12-phase-06-premium-ux-ui-tasks.md` - AI-agent task pack для Phase 06 (premium UX/UI compliance)
+- `13-phase-07-motion-microinteractions-tasks.md` - AI-agent task pack для Phase 07 (motion + reduced motion)
+- `14-phase-08-pagespeed-green-zone-tasks.md` - AI-agent task pack для Phase 08 (PageSpeed green zone release gate)
 
 ## Сквозной процесс (wireframes-first)
 
@@ -66,3 +73,9 @@
 - **Design:** `.pen` макеты и система токенов/состояний/motion.
 - **Frontend:** реализация Next.js и компонентная архитектура.
 - **QA/AI:** автоматические проверки, фиксация дефектов, контроль gates.
+
+## Как проходить pipeline документационно
+1. Начинайте с контекста: используйте `00-site-structure-user-flow-architecture.md` как “System overview” для связки route map, user flows и архитектуры.
+2. Для каждой страницы проходите последовательность из “Сквозной процесс (wireframes-first)”: wireframes (`md`) -> `.pen` -> реализация Next.js.
+3. Для фаз code-имплементации (4-8) используйте соответствующие AI task packs (`10-*..14-*`) как список задач, где каждая задача оформлена как промпт для AI-агента и содержит AcceptanceCriteria + References.
+4. После каждой страницы закрывайте quality через `05-*` и release gate через `08-*`.
